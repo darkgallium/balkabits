@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-uint16_t data_to_hamming_buf(uint8_t data) {
+uint16_t data_to_hamming_buf(uint16_t data) {
   uint16_t buf = 0;
 
   for (int i = 15; i > 0; i--) {
@@ -32,28 +32,29 @@ uint8_t compute_one_positions(uint8_t *positions, uint16_t hamming_buf) {
 
 }
 
-void compute_parity_bits(uint16_t hamming_buf) {
+uint16_t compute_parity_bits(uint16_t hamming_buf) {
   uint8_t positions[16];
   uint8_t c = compute_one_positions(positions, hamming_buf);
 
-  uint16_t remainder = 0;
+  uint16_t xor = 0;
   for (int i = 0; i < c; i++) {
-    remainder = remainder ^ positions[i];
+    xor = xor ^ positions[i];
   }
   
-  printf("remainder = %d\n", remainder);
+  printf("xor = %d\n", xor);
   hamming_buf += (1 << 15);
 
   for (int i = 0; i < 4; i++) {
-    if (remainder & (1 << i)) {
+    if (xor & (1 << i)) {
       hamming_buf += (1 << (15-(1 << i)));
     }
   }
   printf("finalbuf=%d\n", hamming_buf);
+  return hamming_buf;
 }
 
-int main(void) {
+/*int main(void) {
   uint16_t buf = data_to_hamming_buf(0xff);
   compute_parity_bits(buf);
   return 0;
-}
+}*/

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "utils.h"
+#include "hamming.h"
 
 #define SENDER_SENT_OFFSET     (0)
 #define SENDER_RECV_OFFSET     (1024)
@@ -10,21 +11,34 @@
 #define LISTENER_RECV_OFFSET   (3072)
 #define COMM_ADDR_OFFSET       (4096)
 
-void main_loop(void* addr, int times) {
-    
+void send_payload(void *addr, uint16_t payload, uint16_t seq_no) {
+
     const void * sender_sent_addr = addr + SENDER_SENT_OFFSET;
     const void * bit_addr = addr + COMM_ADDR_OFFSET;
     void * recv_recved_addr = addr + LISTENER_RECV_OFFSET;
 
-    for(int i = 0; i < times; i++) {
-        write_bit(sender_sent_addr, bit_addr, recv_recved_addr, i%2, i%2);
-        printf("Sent %d\n", i % 2);
+    for(int i = 0; i < 16; i++) {
+        write_bit(sender_sent_addr, bit_addr, recv_recved_addr, (payload >> (15-i)) & 1, i%2);
+        printf("Sent bit = %d, index = %d/16, seq = %d\n", (payload >> (15-i)) & 1, i, seq_no);
     }
+}
+
+void main_loop(void* addr) {
+    uint8_t data[10];
+
+    scanf("%s", (char *)data);
+
+    for (int i = 0; i < 10; i++) {
+        uint16_t payload = data_to_hamming_buf(data[i]); 
+	payload = compute_parity_bits(payload);
+        send_payload(addr, payload, i);
+    }
+
 }
 
 int main(int argc, char** argv) {
     
-    if (argc < 4) {
+    if (argc < 3) {
         printf("Need more arguments\n");
         exit(2);
     }
@@ -34,9 +48,6 @@ int main(int argc, char** argv) {
     size_t offset;
     sscanf(argv[2], "%lx", &offset);
 
-    int times;
-    sscanf(argv[3], "%d", &times);
-
-    main_loop((void*) addr + offset, times);
+    main_loop((void*) addr + offset);
     return 0;
 }
