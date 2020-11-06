@@ -19,7 +19,7 @@ void send_payload(void *addr, uint16_t payload, uint16_t seq_no) {
 
     for(int i = 0; i < 16; i++) {
         write_bit(sender_sent_addr, bit_addr, recv_recved_addr, (payload >> (15-i)) & 1, i%2);
-        printf("Sent bit = %d, index = %d/16, seq = %d\n", (payload >> (15-i)) & 1, i, seq_no);
+        printf("Sent bit = %d, index = %d/15, seq = %d\n", (payload >> (15-i)) & 1, i, seq_no);
     }
 }
 
@@ -28,9 +28,9 @@ void main_loop(void* addr) {
 
     scanf("%s", (char *)data);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 4; i++) {
         uint16_t payload = data_to_hamming_buf(data[i]); 
-	payload = compute_parity_bits(payload);
+        compute_parity_bits(&payload);
         send_payload(addr, payload, i);
     }
 

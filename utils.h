@@ -6,7 +6,7 @@
 
 #define LIMIT (240) // Max amount of cycles for an access to be counted as a cache hit
 #define SENDING_TIMEOUT_US   (2000)
-#define RECEIVING_TIMEOUT_US (1000)
+#define RECEIVING_TIMEOUT_US (1500)
 /**
  * Credit : Clementine M (https://github.com/clementine-m/cache_template_attacks). 
  * Gets the current value of the cycle counter..
