@@ -33,7 +33,7 @@ void main_loop(const void* addr) {
     printf("Starts listening\n");
 
     int seq = 0;
-    uint16_t payload, data = 0;
+    uint16_t payload = 0, data = 0;
 
     while(1) {
         recv_payload(addr, &payload, seq);

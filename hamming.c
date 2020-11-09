@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
+
+
+
 uint16_t data_to_hamming_buf(uint16_t data) {
   uint16_t buf = 0;
 
@@ -48,6 +51,7 @@ uint8_t compute_one_positions(uint8_t *positions, uint16_t hamming_buf) {
 
     if (hamming_buf & 1) {
       positions[c++] = i;
+      //printf("positions[%d]=%d",c,i);
     }
     
     hamming_buf = hamming_buf >> 1;
@@ -88,6 +92,21 @@ uint16_t compute_parity_bits(uint16_t *hamming_buf) {
   return xor_cpy;
 }
 
+void printBits(size_t const size, void const * const ptr)
+{
+    unsigned char *b = (unsigned char*) ptr;
+    unsigned char byte;
+    int i, j;
+    
+    for (i = size-1; i >= 0; i--) {
+        for (j = 7; j >= 0; j--) {
+            byte = (b[i] >> j) & 1;
+            printf("%u", byte);
+        }
+    }
+    puts("");
+}
+
 
 void fix_hamming_buf(uint16_t *recvd_hamming_buf) {
     int16_t computed_hamming_buf = *recvd_hamming_buf;
@@ -100,7 +119,9 @@ void fix_hamming_buf(uint16_t *recvd_hamming_buf) {
     if (xor != 0) {
         printf("error detected in recvd buffer at index %d\n", xor);
         // flip the bit at index xor, xor 1 always flips the bit
-        computed_hamming_buf ^= (1 << xor);
-        *recvd_hamming_buf = computed_hamming_buf;
+        computed_hamming_buf ^= (1 << (15-xor));
+	printf("%u\n", computed_hamming_buf);
+	
+	*recvd_hamming_buf = computed_hamming_buf;
     }
 }
