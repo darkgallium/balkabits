@@ -1,64 +1,85 @@
-#include <sys/types.h> // size_t
+#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "utils.h"
-#include "hamming.h"
 
-#define SENDER_SENT_OFFSET   (0)
-#define SENDER_RECV_OFFSET   (1024)
-#define LISTENER_SENT_OFFSET (2048)
-#define LISTENER_RECV_OFFSET (3072)
-#define COMM_ADDR_OFFSET     (4096)
-
-void recv_payload(void *addr, uint16_t *payload, int seq) {
-
-    int total_received = 0;
-    const void* sender_sent_addr = addr + SENDER_SENT_OFFSET;
-    const void* bit_addr = addr + COMM_ADDR_OFFSET;
-    void* recv_recved_addr = addr + LISTENER_RECV_OFFSET;
-
-    for (int i = 15; i >= 0; i--) {
-        int bit = read_bit(sender_sent_addr, bit_addr, recv_recved_addr, (15-i)%2);
-	printf("Recv bit = %d, index = %d/15, seq = %d\n", bit, (15-i), seq);
-
-	// payload is received and stored in big endian order
-	*payload += bit << i;
-        total_received++;
-    } 
-
+void pre_flush(void* address) {
+    flush(address + RECEIVER_READY_OFFSET);
+    flush(address + RECEIVER_RECV_OFFSET);
+    flush(address + PACKET_OK);
+    flush(address + PACKET_CORRUPT);
 }
 
-void main_loop(const void* addr) {
-    printf("Starts listening\n");
+void main_loop(void* address) {
+    char message[1024];
+    char packet = 0;
+    int index  = 0;
 
-    int seq = 0;
-    uint16_t payload = 0, data = 0;
+    int packet_count = 0;
+
+    char ch, file_name[] = "recv.jpg";
+    FILE *fp;
+
+    fp = fopen(file_name, "wb");
+
+    if (fp == NULL) {
+        perror("Error while opening the file.\n");
+        exit(EXIT_FAILURE);
+    }
 
     while(1) {
-        recv_payload(addr, &payload, seq);
-        fix_hamming_buf(&payload);
-	data = hamming_buf_to_data(payload);
-	
-	printf("[PACK] seq=%d, data received = %d\n", seq++, data);
-	
-	payload=0;
-	data = 0;
+        int is_end = 0;
+        for(index = 0; index < 8; index++) {
+
+            // The receiver tells  it is ready to read the bit
+            // until it receives a 0 or a 1
+            int bit = spam_question(
+                address,
+                RECEIVER_READY_OFFSET,
+                COMM_ONE_OFFSET,
+                COMM_ZERO_OFFSET);
+            
+            // adds the data to the packet
+            packet |= bit << index;
+            
+            // Confirms that the data is read
+            is_end = spam_question(address, RECEIVER_RECV_OFFSET, WAS_PACKET_END, WAS_NOT_PACKET_END);
+
+            //printf("Received %d (%d)\n", bit, (++index));
+        }
+
+        if (is_end) {
+            fclose(fp);
+            return;
+        }
+        
+        if(packet_count % 1000 == 0)
+            printf("seq = %d, byte = %u\n", packet_count, (uint8_t) packet);
+            
+        packet_count++;
+        fwrite(&packet,1,1,fp);
+        packet = 0;
     }
+
 }
 
 int main(int argc, char** argv) {
-    
+
     if (argc < 3) {
         printf("Need more arguments\n");
         exit(2);
     }
-
+    // Memory sharing
     char* addr = load_lib(argv[1]);
 
+    // Base address for the communication
     size_t offset;
     sscanf(argv[2], "%lx", &offset);
 
+    // Cleans the cache to prevent false positives
+    pre_flush(addr);
     main_loop((void*) addr + offset);
+
     return 0;
 }

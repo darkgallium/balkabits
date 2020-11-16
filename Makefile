@@ -4,9 +4,9 @@ ALL=sender listener
 
 all: sender listener
 
-sender: sender.c utils.o hamming.o
+sender: sender.c utils.o# hamming.o
 
-listener: listener.c utils.o hamming.o
+listener: listener.c utils.o# hamming.o
 
 utils.o: utils.c utils.h
 

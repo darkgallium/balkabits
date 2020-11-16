@@ -1,12 +1,31 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <sys/types.h>
 #include <sys/time.h> // timeval
 #include <stdint.h> // uint64_t
 
-#define LIMIT (220) // Max amount of cycles for an access to be counted as a cache hit
-#define SENDING_TIMEOUT_US   (1000)
-#define RECEIVING_TIMEOUT_US (500)
+#define PACKET_SIZE (32) // bits : 24 for content, 2 for sequence number, 6 for hamming
+
+#define REPEATS_FOR_SECURE (5)
+
+#define LIMIT_SECURE (190) // Max amount of cycles for an access to be counted as a cache hit
+#define LIMIT (230)
+#define SENDING_TIMEOUT_US    (2000)
+#define RECEIVING_TIMEOUT_US  (1500)
+
+#define SENDER_SENT_OFFSET    (0)
+#define WAS_PACKET_END        (1024)
+#define WAS_NOT_PACKET_END    (2048)
+#define PACKET_ACK            (3072)
+
+#define RECEIVER_READY_OFFSET (4096)
+#define RECEIVER_RECV_OFFSET  (5120)
+#define PACKET_OK             (6144)
+#define PACKET_CORRUPT        (8192)
+
+#define COMM_ZERO_OFFSET      (9216)
+#define COMM_ONE_OFFSET       (10240)
 /**
  * Credit : Clementine M (https://github.com/clementine-m/cache_template_attacks). 
  * Gets the current value of the cycle counter..
@@ -35,6 +54,8 @@ void flush(const void* p);
  */
 int cache_hit(const void* p);
 
+int cache_hit_secure(const void* p);
+
 /**
  * Loads a shared library using mmap then returns a pointer to the corresponding address. 
  * @param filepath : the path of the library.
@@ -56,17 +77,8 @@ void repeated_sched_yield();
  */
 struct timeval add_us(const struct timeval origin_time, const int microseconds);
 
-/**
- * On the receiver side : waits until the sender gives the sending confirmation, then reads the bit at the address
- * and finally notify the sender that the data has been read.
- * @param sender_sent_addr : the address where the sender says that the data has been sent.
- * @param bit_addr : the address of the read data.
- * @param recv_recved_addr : the address for the reading confirmation.
- * @return the bit read at bit_addr.
- */
-int read_bit(const void* sender_sent_addr, const void* bit_addr, void* recv_recved_addr, int parity);
+void spam(void* base_address, int offset, int confirm_offset);
 
-
-void write_bit(const void* sender_sent_addr, const void* bit_addr, void* recv_recved_addr, const int bit, const int parity);
+int spam_question(void* base_address, int offset, int offset_true, int offset_false);
 
 #endif
