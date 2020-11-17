@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/stat.h>
 
 #include "utils.h"
 
@@ -14,7 +15,7 @@ void pre_flush(void* address) {
 
 void main_loop(void* address, char *filename) {
     
-    int packets = 1024, packet_id = 0;
+    int packets = 1024, packet_count = 0;
     char number = 0;
     char number_next = 0;
 
@@ -27,12 +28,20 @@ void main_loop(void* address, char *filename) {
         exit(EXIT_FAILURE);
     }
 
+    struct stat stat_buf;
+    fstat(fileno(fp), &stat_buf);
+    off_t total_size = stat_buf.st_size;
+
     fread(&number, 1, 1, fp);
 
     while(fread(&number_next, 1, 1, fp) != 0) {
-        if(packet_id % 1000 == 0)
-            printf("seq = %d, byte = %u\n", packet_id,  (uint8_t) number);
-        packet_id++;
+        
+        if(packet_count % 500 == 0) {
+            printf("\rProgress: %0.2f%% (%d/%d)\033[K", ((double)packet_count/total_size)*100, packet_count, total_size);
+            fflush(stdout);
+        }
+
+        packet_count++;
             
         for(int index = 0; index < 8; index++) {
             int bit = (number >> index) & 1;
@@ -46,8 +55,6 @@ void main_loop(void* address, char *filename) {
         number = number_next;
     }
     
-    printf("%u\n", number);
-
     for(int index = 0; index < 8; index++) {
         int bit = (number >> index) & 1;
         int target_offset = bit ? COMM_ONE_OFFSET : COMM_ZERO_OFFSET;
@@ -58,7 +65,7 @@ void main_loop(void* address, char *filename) {
         spam(address, END, RECEIVER_READY_OFFSET);
     }
 
-
+    printf("\rProgress: 100%% (%d/%d)\033[K", ++packet_count, total_size);
     fclose(fp);
 }
 

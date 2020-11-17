@@ -46,13 +46,23 @@ int main_loop(void* address, char *filename) {
             //printf("Received %d (%d)\n", bit, (++index));
         }
         
-        if(packet_count % 1000 == 0)
-            printf("seq = %d, byte = %u\n", packet_count, (uint8_t) packet);
+        if(packet_count % 500 == 0) {
+            printf("\rReceived %d bytes\033[K", packet_count);
+            fflush(stdout);
+        }
             
         packet_count++;
         fwrite(&packet,1,1,fp);
 
         if (is_end) {
+            printf("\rReceived %d bytes\033[K", packet_count);
+
+            // spam receiver ready so that the sender has a chance to break its loop
+            for (int i = 0; i < 10; i++) {
+                maccess(address + RECEIVER_READY_OFFSET);
+                repeated_sched_yield();
+            }
+            
             fclose(fp);
             break;
         }
@@ -90,7 +100,7 @@ int main(int argc, char** argv) {
     int time_delta = after.tv_sec - before.tv_sec;
     double speed = ((double) bytes_read) / ((double) time_delta);
 
-    printf("Received %d bytes in %d seconds, speed is %0.4f B/s\n", bytes_read, time_delta, speed);
+    printf("\nReceived %d bytes in %d seconds, speed is %0.4f B/s\n", bytes_read, time_delta, speed);
 
     return 0;
 }

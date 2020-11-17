@@ -5,7 +5,7 @@
 #include <sys/time.h> // timeval
 #include <stdint.h> // uint64_t
 
-#define REPEATS_FOR_SECURE (5)
+#define REPEATS_FOR_SECURE (4)
 
 #define LIMIT (190) // Max amount of cycles for an access to be counted as a cache hit
 
