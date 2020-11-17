@@ -5,18 +5,18 @@
 #include <sys/time.h> // timeval
 #include <stdint.h> // uint64_t
 
-#define REPEATS_FOR_SECURE (4)
+#define REPEATS_FOR_SECURE (5)
 
-#define LIMIT_SECURE (190) // Max amount of cycles for an access to be counted as a cache hit
+#define LIMIT (190) // Max amount of cycles for an access to be counted as a cache hit
 
-#define END                   (1024)
+#define END                   (0)
 #define NOT_END               (2048)
 
-#define RECEIVER_READY_OFFSET (3072)
-#define RECEIVER_RECV_OFFSET  (4096)
+#define RECEIVER_READY_OFFSET (4096)
+#define RECEIVER_RECV_OFFSET  (6144)
 
-#define COMM_ZERO_OFFSET      (5120)
-#define COMM_ONE_OFFSET       (6144)
+#define COMM_ZERO_OFFSET      (8192)
+#define COMM_ONE_OFFSET       (10240)
 /**
  * Credit : Clementine M (https://github.com/clementine-m/cache_template_attacks). 
  * Gets the current value of the cycle counter..

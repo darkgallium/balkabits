@@ -36,7 +36,7 @@ int cache_hit(const void* addr) {
     maccess(addr);
     size_t delay = rdtsc() - time;
     flush(addr);
-    return delay < LIMIT_SECURE;
+    return delay < LIMIT;
 }
 
 unsigned char* load_lib(const char* filepath) {
