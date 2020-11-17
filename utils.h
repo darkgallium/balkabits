@@ -7,7 +7,7 @@
 
 #define PACKET_SIZE (32) // bits : 24 for content, 2 for sequence number, 6 for hamming
 
-#define REPEATS_FOR_SECURE (5)
+#define REPEATS_FOR_SECURE (4)
 
 #define LIMIT_SECURE (190) // Max amount of cycles for an access to be counted as a cache hit
 #define LIMIT (230)

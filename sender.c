@@ -14,25 +14,24 @@ void pre_flush(void* address) {
     flush(address + COMM_ONE_OFFSET);
 }
 
-void main_loop(void* address) {
+void main_loop(void* address, char *filename) {
     srand(time(NULL));
     int packets = 1024, packet_id = 0;
     char number = 0;
     char number_next = 0;
 
-    char ch, file_name[] = "JPEG_example_flower.jpg";
     FILE *fp;
 
-    fp = fopen(file_name, "r");
+    fp = fopen(filename, "r");
 
     if (fp == NULL) {
         perror("Error while opening the file.\n");
         exit(EXIT_FAILURE);
     }
-    int x = 0;
+
     fread(&number, 1, 1, fp);
 
-    while((x=fread(&number_next, 1, 1, fp)) != 0) {
+    while(fread(&number_next, 1, 1, fp) != 0) {
         if(packet_id % 1000 == 0)
             printf("seq = %d, byte = %u\n", packet_id,  (uint8_t) number);
         packet_id++;
@@ -48,6 +47,8 @@ void main_loop(void* address) {
         }
         number = number_next;
     }
+    
+    printf("%u\n", number);
 
     for(int index = 0; index < 8; index++) {
         int bit = (number >> index) & 1;
@@ -77,8 +78,8 @@ int main(int argc, char** argv) {
 
     // Cleans the cache to prevent false positives
     pre_flush(addr);
-    
-    main_loop((void*) addr + offset);
+  
+    main_loop((void*) addr + offset, argv[3]);
     
     return 0;
 }

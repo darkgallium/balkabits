@@ -11,17 +11,16 @@ void pre_flush(void* address) {
     flush(address + PACKET_CORRUPT);
 }
 
-void main_loop(void* address) {
+int main_loop(void* address, char *filename) {
     char message[1024];
     char packet = 0;
     int index  = 0;
 
     int packet_count = 0;
 
-    char ch, file_name[] = "recv.jpg";
     FILE *fp;
 
-    fp = fopen(file_name, "wb");
+    fp = fopen(filename, "wb");
 
     if (fp == NULL) {
         perror("Error while opening the file.\n");
@@ -48,19 +47,22 @@ void main_loop(void* address) {
 
             //printf("Received %d (%d)\n", bit, (++index));
         }
-
-        if (is_end) {
-            fclose(fp);
-            return;
-        }
         
         if(packet_count % 1000 == 0)
             printf("seq = %d, byte = %u\n", packet_count, (uint8_t) packet);
             
         packet_count++;
         fwrite(&packet,1,1,fp);
+
+        if (is_end) {
+            fclose(fp);
+            break;
+        }
+
         packet = 0;
     }
+
+    return packet_count;
 
 }
 
@@ -79,7 +81,18 @@ int main(int argc, char** argv) {
 
     // Cleans the cache to prevent false positives
     pre_flush(addr);
-    main_loop((void*) addr + offset);
+
+    struct timeval before, after;
+    gettimeofday(&before, NULL);
+    
+    int bytes_read = main_loop((void*) addr + offset, argv[3]);
+
+    gettimeofday(&after, NULL);
+
+    int time_delta = after.tv_sec - before.tv_sec;
+    double speed = ((double) bytes_read) / ((double) time_delta);
+
+    printf("Received %ld bytes in %ld seconds, speed is %0.4f B/s\n", bytes_read, time_delta, speed);
 
     return 0;
 }
