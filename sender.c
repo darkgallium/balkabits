@@ -6,16 +6,14 @@
 #include "utils.h"
 
 void pre_flush(void* address) {
-    flush(address + SENDER_SENT_OFFSET);
-    flush(address + WAS_PACKET_END);
-    flush(address + WAS_NOT_PACKET_END);
-    flush(address + PACKET_ACK);
+    flush(address + END);
+    flush(address + NOT_END);
     flush(address + COMM_ZERO_OFFSET);
     flush(address + COMM_ONE_OFFSET);
 }
 
 void main_loop(void* address, char *filename) {
-    srand(time(NULL));
+    
     int packets = 1024, packet_id = 0;
     char number = 0;
     char number_next = 0;
@@ -43,7 +41,7 @@ void main_loop(void* address, char *filename) {
             // Waits for the listener to receive
             spam(address, target_offset, RECEIVER_RECV_OFFSET);
             // Acknowledges the reception
-            spam(address, WAS_NOT_PACKET_END, RECEIVER_READY_OFFSET);
+            spam(address, NOT_END, RECEIVER_READY_OFFSET);
         }
         number = number_next;
     }
@@ -57,7 +55,7 @@ void main_loop(void* address, char *filename) {
         // Waits for the listener to receive
         spam(address, target_offset, RECEIVER_RECV_OFFSET);
         // Acknowledges the reception
-        spam(address, WAS_PACKET_END, RECEIVER_READY_OFFSET);
+        spam(address, END, RECEIVER_READY_OFFSET);
     }
 
 

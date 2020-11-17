@@ -36,14 +36,6 @@ int cache_hit(const void* addr) {
     maccess(addr);
     size_t delay = rdtsc() - time;
     flush(addr);
-    return delay < LIMIT;
-}
-
-int cache_hit_secure(const void* addr) {
-    size_t time = rdtsc();
-    maccess(addr);
-    size_t delay = rdtsc() - time;
-    flush(addr);
     return delay < LIMIT_SECURE;
 }
 
@@ -67,7 +59,7 @@ void spam(void* base_address, int offset, int confirm_offset) {
         do {
             maccess(base_address + offset);
             repeated_sched_yield();
-        } while(!cache_hit_secure(base_address + confirm_offset));
+        } while(!cache_hit(base_address + confirm_offset));
     }
     flush(base_address + offset);
     flush(base_address + confirm_offset);
@@ -82,8 +74,8 @@ int spam_question(void* base_address, int target, int offset_true, int offset_fa
         //printf("%d %d\n", good, bad);
         maccess(base_address + target);
         repeated_sched_yield();
-        if (cache_hit_secure(base_address + offset_false)) bad ++;
-        if (cache_hit_secure(base_address + offset_true)) good ++;
+        if (cache_hit(base_address + offset_false)) bad ++;
+        if (cache_hit(base_address + offset_true)) good ++;
         if (bad  >= REPEATS_FOR_SECURE) break;
         if (good >= REPEATS_FOR_SECURE) {
             ret = 1;

@@ -7,8 +7,6 @@
 void pre_flush(void* address) {
     flush(address + RECEIVER_READY_OFFSET);
     flush(address + RECEIVER_RECV_OFFSET);
-    flush(address + PACKET_OK);
-    flush(address + PACKET_CORRUPT);
 }
 
 int main_loop(void* address, char *filename) {
@@ -43,7 +41,7 @@ int main_loop(void* address, char *filename) {
             packet |= bit << index;
             
             // Confirms that the data is read
-            is_end = spam_question(address, RECEIVER_RECV_OFFSET, WAS_PACKET_END, WAS_NOT_PACKET_END);
+            is_end = spam_question(address, RECEIVER_RECV_OFFSET, END, NOT_END);
 
             //printf("Received %d (%d)\n", bit, (++index));
         }
@@ -92,7 +90,7 @@ int main(int argc, char** argv) {
     int time_delta = after.tv_sec - before.tv_sec;
     double speed = ((double) bytes_read) / ((double) time_delta);
 
-    printf("Received %ld bytes in %ld seconds, speed is %0.4f B/s\n", bytes_read, time_delta, speed);
+    printf("Received %d bytes in %d seconds, speed is %0.4f B/s\n", bytes_read, time_delta, speed);
 
     return 0;
 }
