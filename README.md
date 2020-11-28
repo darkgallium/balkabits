@@ -5,6 +5,7 @@ It requires some shared library to be mapped by the sender and the receiver, whi
 These programs allow to exchange between the two processes, via the covert channel, an arbitrary file.
 
 This program is based of [this code](https://github.com/clementine-m/cache_template_attacks) from Clémentine Maurice and IAIK.
+It was developped as part of the Side Channel attacks class at INSA Rennes by [collivie](https://github.com/collivie) and [darkgallium](https://github.com/darkgallium).
 
 ## Usage
 
